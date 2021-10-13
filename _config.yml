@@ -22,3 +22,5 @@ exclude:
   - vendor/cache/
   - vendor/gems/
   - vendor/ruby/
+  - example
+  - serve.sh
