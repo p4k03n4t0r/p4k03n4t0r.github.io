@@ -1,1 +1,24 @@
-theme: jekyll-theme-hacker
+title: My Blog
+description: >-
+  This is a blog
+baseurl: ""
+url: "https://p4k03n4t0r.github.io/"
+twitter_username: BijlPaulvd
+github_username:  p4k03n4t0r
+
+# Build settings
+theme: minima
+plugins:
+  - jekyll-feed
+
+exclude:
+  - .sass-cache/
+  - .jekyll-cache/
+  - gemfiles/
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
