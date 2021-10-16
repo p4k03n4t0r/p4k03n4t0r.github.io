@@ -1,15 +1,20 @@
-title: My Blog
+title: Blog
 description: >-
-  This is a blog
-baseurl: ""
-url: "https://p4k03n4t0r.github.io/"
-twitter_username: BijlPaulvd
-github_username:  p4k03n4t0r
+  This is a blog about IT stuff
 
 # Build settings
-theme: minima
+remote_theme: jekyll/minima
 plugins:
   - jekyll-feed
+  - jekyll-remote-theme
+
+minima:
+  skin: dark
+  social_links:
+    github: p4k03n4t0r
+    twitter: BijlPaulvd
+    linkedin: paul-van-der-bijl-b582a5b7
+show_excerpts: true
 
 exclude:
   - .sass-cache/

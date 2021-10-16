@@ -1,8 +1,8 @@
 ---
 layout: post
 title:  "Book review: The Unicorn Project"
-date:   2021-10-13 21:45:40 +0200
-categories: book
+date:   2021-10-13
+tags: book
 ---
 
 _The last time I did a book review was probably some time ago in highschool, but it might be fun to do another one. Although I still enjoy reading literature like George Orwells 1986, I also read books related to IT. The Unicorn Project is such a book which tries to teach you more about how developers should and shouldn't work within an organization. The thing which makes this book interesting, is that it's not a book with only pure theory. The book actually contains a story via which it tries to teach you things, which made me really enjoy this book. Although The Unicorn Project has precessor called The Phoenix Project, the first one named is more relevent for me. The Phoenix Project is written from the perspective of IT operations within a big organization, while The Unicorn Project is from the perspective of developers. Still, the Phoenix Project is interesting to read and even as a developer there are things you can learn from it._
