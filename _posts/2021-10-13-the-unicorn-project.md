@@ -47,11 +47,11 @@ Another thing I learned from the book is that making mistakes is okay (even in p
 
 After finishing the Unicorn project I read the 'take time to slow down', which I think quite nicely summarizes an important part of the third ideal for me:
 
-> _Life teaches us through mistakes._\
-> _When you make a mistake,_\
-> _simply ask yourself what you were meant to learn from it._\
-> _When we accept such lessons with humility and gratitude,_\
-> _we grow that much more._
+> Life teaches us through mistakes.\
+When you make a mistake,\
+simply ask yourself what you were meant to learn from it.\
+When we accept such lessons with humility and gratitude,\
+we grow that much more.
 
 ### 4. Psychological Safety
 
