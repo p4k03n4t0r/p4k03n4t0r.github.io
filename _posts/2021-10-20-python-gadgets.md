@@ -23,7 +23,7 @@ Although Python also follows the principle of return oriented programming, it's 
 
 The challenge gives us just a Python script which can be run against an external server. When running it it looks as follows:
 
-![Atelier](assets/2021-10-20-python-gadgets/atelier.png)
+![Atelier]({{ site.url }}/assets/2021-10-20-python-gadgets/atelier.png)
 
 As can be seen the program is relatively simple: choose two materials and a result is shown. I tried different inputs, like non existing numbers or special characters, but the server seemed to handle this correctly. So let's dive into the code of the provided client.
 
@@ -472,19 +472,19 @@ The way the server works is very similar to the client, it also serializes objec
 
 Let's dive into the first exploit using the classes `_FunctionGenerator` and `_class_resolver` to see exactly what is happening. Since the code of the server is available, it can be debugged and seen how it handles the message of the exploit. The deserialized message results in the following Python object:
 
-![Debug 1](assets/2021-10-20-python-gadgets/debug1.png)
+![Debug 1]({{ site.url }}/assets/2021-10-20-python-gadgets/debug1.png)
 
 The `dict_to_object` method actually deserialized the message into the (nested) classes provided via the `__class__` and `__module__` fields. Let's continue debugging.
 
-![Debug 2](assets/2021-10-20-python-gadgets/debug2.png)
+![Debug 2]({{ site.url }}/assets/2021-10-20-python-gadgets/debug2.png)
 
 The exploits seem to override the split method and hovering over the value of it, it confirms this suspicion. In comparison, normally split would point to the built-in function of string:
 
-![Debug 3](assets/2021-10-20-python-gadgets/debug3.png)
+![Debug 3]({{ site.url }}/assets/2021-10-20-python-gadgets/debug3.png)
 
 By disabling the `justMyCode` setting of VS Code, this call can be followed:
 
-![Debug 4](assets/2021-10-20-python-gadgets/debug4.png)
+![Debug 4]({{ site.url }}/assets/2021-10-20-python-gadgets/debug4.png)
 
 Okay this is interesting! So we end up in the `FunctionGenerator` class in the `sqlalchemy.sql.functions` module, as expected, but in this class we go into the `__call__` method. The [Python documentation](https://docs.python.org/3/reference/datamodel.html#object.__call__) says the following: `Called when the instance is “called” as a function`. Which means the following happens:
 
@@ -500,15 +500,15 @@ c()
 
 Okay so we can reference classes which have implemented the `__call__`. Let's see what happens next in the program:
 
-![Debug 5](assets/2021-10-20-python-gadgets/debug5.png)
+![Debug 5]({{ site.url }}/assets/2021-10-20-python-gadgets/debug5.png)
 
 So as expected, the `copy` method now points to the `_class_resolver` class and if this class has a `__call__` method, the code will go there:
 
-![Debug 6](assets/2021-10-20-python-gadgets/debug6.png)
+![Debug 6]({{ site.url }}/assets/2021-10-20-python-gadgets/debug6.png)
 
 So this is also as expected. On top of that we can see that the arguments `arg` and `_dict` are also set. If the code continious, the `eval` statement is executed, which returns an exception where the message of the exception contains the flag. Since `eval` raises an exception which is not caught, it will be thrown untill this it's catched. The `__call__` methods of the `_class_resolver` and `_FunctionGenerator` don't catch this exception, but the server script does:
 
-![Debug 7](assets/2021-10-20-python-gadgets/debug7.png)
+![Debug 7]({{ site.url }}/assets/2021-10-20-python-gadgets/debug7.png)
 
 The error message, in this case the flag, is returned via an `AtelierException` to the user. With this the circle is round, but the question still remains why all these extra jumps and nested classes were necessary; couldn't we just use call the `_class_resolver` straight away?
 
@@ -584,7 +584,7 @@ Where the payload would look like:
 
 This payload results in reading the flag file and returning it to the client. One interesting detail which hasn't been clarified in the exploits yet was the need for an extra object of class `UpperRequest`. Since the method `upper` is called on the property `text`, but not on the object of class `UpperRequest` directly, this property should also be initialized as something. Since `UpperRequest` is a known class without any side-effects, like a custom constructor, the type of the `text` property can be set to this class. This will result in the following when debugging the server:
 
-![Debug 8](assets/2021-10-20-python-gadgets/debug8.png)
+![Debug 8]({{ site.url }}/assets/2021-10-20-python-gadgets/debug8.png)
 
 This is also important when looking for Python gadgets. Since an exception is thrown in the `eval` method, the code happening after the call made in the gadget (in the exploit the code after the `self.opts.copy()` call), is never called. But as can be seen with that example, not the object itself is directly called, but a property of the object. So a class could also look like:
 
