@@ -29,3 +29,4 @@ exclude:
   - vendor/ruby/
   - example
   - serve.sh
+  - _images/
