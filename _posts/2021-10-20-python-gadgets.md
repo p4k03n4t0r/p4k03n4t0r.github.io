@@ -19,7 +19,7 @@ When trying to write an exploit this is often a problem, since the registries at
 
 Although Python also follows the principle of return oriented programming, it's not easy to create a similar exploit. When programming in Python we don't write directly to memory addresses in comparison to C, so overwriting the return pointer is not possible. But there are other ways to create exploits in Python, which suprising to me had an interesting familiarity with a ROP chain exploit.
 
-# The challenge: Atelier
+## The challenge: Atelier
 
 The challenge gives us just a Python script which can be run against an external server. When running it it looks as follows:
 
