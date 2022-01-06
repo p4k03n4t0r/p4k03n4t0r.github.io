@@ -5,7 +5,7 @@ date:   2021-10-16
 tags: debugging, way-of-thinking
 ---
 
-_Although I have not been a programmer for a long time, I have found out being to go one layer deeper when programming helped me a lot. Being able to do this, really made the difference for me in whether I was able to find an issue and solve it. Looking around I can clearly see that people who are able to do this, are the ones who really understand how things work and leverage this power to do cool things. In this post I'm going to talk a bit more about what I mean with 'going one layer deeper' and give five tools of my toolbet which help me to dive deeper._
+_Although I have not been a programmer for a long time, I have found out being to go 'one layer deeper' when programming helped me a lot. Being able to do this, really made the difference for me in whether I was able to find an issue and solve it. Looking around I can clearly see that people who are able to do this, are the ones who really understand how things work and leverage this power to do cool things. In this post I'm going to talk a bit more about what I mean with 'going one layer deeper' and give five tools of my toolbet which help me to do this._
 
 ## Why should I go deeper?
 
@@ -43,4 +43,4 @@ Taking a look at the Linux processes is a bit scary, since it goes to the core o
 
 ### Windows: Sysinternals
 
-For Windows applies the same as Linux, really understanding it takes years and years of practicing, but having the right tools helps you in this quest. For Windows [Sysinternals](https://docs.microsoft.com/en-us/sysinternals/) is a set of tools which basicly has everything you need. I would recommend to watch the talks of Mark Russinovich, the original creater, to better understand the usage of each tool. Especially the series [The Case of the Unexplained](https://docs.microsoft.com/en-us/sysinternals/resources/webcasts) are interesting and besides that also entertaining.
+For Windows applies the same as Linux, really understanding it takes years and years of practicing, but having the right tools helps you in this quest. For Windows [Sysinternals](https://docs.microsoft.com/en-us/sysinternals/) is a set of tools which basicly has everything you need. I would recommend to watch the talks of Mark Russinovich, the original creater, to better understand the usage of each tool. Especially the series [The Case of the Unexplained](https://docs.microsoft.com/en-us/sysinternals/resources/webcasts) are interesting and also very entertaining.
