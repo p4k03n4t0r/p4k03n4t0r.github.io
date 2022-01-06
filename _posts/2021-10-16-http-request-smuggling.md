@@ -7,7 +7,13 @@ tags: http, exploit
 
 _With more and more techniques being built on top of others, it’s getting more difficult for a developer to understand what is actually happening when he writes some code. On top of this the DevOps movement is progressing, where a developer is also supposed to know something about the infrastructure the code runs on. I think for a developer knowing how things work under the hood is not always necessary, but it helps choose better solutions and decreases the amount of mistakes made._
 
-_In this blog post I’ll be taking a look at request smuggling, which could utilize a wrongly configured proxy to ‘smuggle’ HTTP requests out of the network. For example responses from endpoints which are supposed to be inaccessible from the internet can be smuggled out of the network by a malicious user. I’ll be diving a bit into the HTTP protocol to show how this is possible. Based on what seems like harmless configuration of a proxy and a webserver I’ll also be giving a working examples of request smuggling. [This repository](https://github.com/p4k03n4t0r/http-request-smuggling) contains all the source files referenced in this post._
+_In this blog post I’ll be taking a look at request smuggling, which could utilize a what it seems like secure proxy to ‘smuggle’ HTTP requests out of the network. For example responses from endpoints which are supposed to be inaccessible from the internet can be smuggled out of the network by a malicious user. I’ll be diving a bit into the HTTP protocol to show how this is possible. Based on what seems like harmless configuration of a proxy and a webserver I’ll also be giving a working examples of request smuggling. [This repository](https://github.com/p4k03n4t0r/http-request-smuggling) contains all the source files referenced in this post._
+
+## Setup
+
+The setup that I use is fairly simple, but still is similar to how things are done on a large scale. A proxy is exposed to the internet and proxies the traffic to an internal server. The server exposes an area (the /flag endpoint) that shouldn't be accessible from the internet, so the proxy blocks them. With the setup it looks like that it wouldn't be possible to reach the internal /flag endpoint, but let's see whether that is really true. This is an overview of the setup: 
+
+![setup]({{ site.url }}/assets/2021-10-16-http-request-smuggling/setup.drawio.svg)
 
 ## HTTP requests
 
