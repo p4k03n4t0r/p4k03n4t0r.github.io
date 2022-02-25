@@ -5,7 +5,7 @@ date:   2022-02-24
 tags: []
 ---
 
-_During technical interviews for a job I have often been asked what multithreading is. I could often explain what it does, but explaining how it works was a different piece of cake. When doing Python I even found out there's besides multithreading also multiprocessing, now I was completely lost. It took me some time to understand what made them different and also how and when to apply them. Still there's much more to learn about it, but right now I think I understand the basics of it. 
+_During technical interviews for a job I have often been asked what multithreading is. I could often explain what it does, but explaining how it works was a different piece of cake. When doing Python I even found out there's besides multithreading also multiprocessing, now I was completely lost. It took me some time to understand what made them different and also how and when to apply them. Still there's much more to learn about it, but right now I think I understand the basics of it._ 
 
 ## What are threads and processes?
 
