@@ -11,9 +11,9 @@ plugins:
 minima:
   skin: dark
   social_links:
-    github: p4k03n4t0r
-    twitter: BijlPaulvd
-    linkedin: paul-van-der-bijl-b582a5b7
+    - { platform: github,  user_url: "https://github.com/p4k03n4t0r" }
+    - { platform: twitter,  user_url: "https://twitter.com/pakoenatorr" }
+    - { platform: linkedin, user_url: "https://www.linkedin.com/in/paul-van-der-bijl-b582a5b7/" }
 show_excerpts: true
 
 exclude:
