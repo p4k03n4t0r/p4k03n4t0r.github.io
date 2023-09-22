@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 'Storage first pattern'
-date: 2022-09-02
+date: 2023-09-22
 tags: storage first, aws, pattern, dynamodb
 ---
 
