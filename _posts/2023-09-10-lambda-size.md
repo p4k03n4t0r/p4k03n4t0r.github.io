@@ -5,63 +5,73 @@ date: 2023-09-10
 tags: lambda function, lambda
 ---
 
-_For the last two years I have been working with AWS Lambda functions. This gave me a lot of joy and a headache at the same time. It made some things much easier in comparison to running applications in containers. But I also had to revisit some concepts I thought were 'good practices'. One of the biggest things I was struggling with was: how big should a Lambda function be? Coming from this movement of monoliths to smaller microservices, it felt that Lambda functions were one more step in the direction of 'making it even smaller'. Now after having some experience with Lambda functions, I feel I can give my take on it based on what I learned from practice so far._
+_One of the core engineering principles within PostNL is the use of AWS serverless. It brings many benefits like scalability and cost savings, but it also brings new challenges to the table. For Lambda functions one of these challenges is the size of a function: is it best to use many, small Lambda functions or is it better to have a few, large ones? This blog post will give you an (opinionated) view on this topic based on the experience of one of the development teams within PostNL. Hopefully, the given considerations can help you in how you approach using Lambda functions._
 
-## Hard limits of a Lambda function
+## How did we get here?
 
-One thing I think is important to know before diving into this subject is knowing the hard limits of a Lambda function. The limits for a single function are a 15-minute timeout, 10,240 MB memory and 10GB code size, see [Lambda quotas](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html). It looks like Lambda functions can handle large code bases, as long as the (monolithic) application doesn't have long-running tasks of over 15 minutes or requires large amounts of memory. This still doesn't answer the question of how big a Lambda function should be, but it at least sets some boundaries for the discussion later on.
+The question of how to partition your code is not something new, it's a question that is already older than the cloud. So let's first take a few steps back and see how we got here. For a long time, monoliths ruled the world of software. This was until people started cutting up the large, complex monoliths into smaller pieces: microservices were born. This worked nicely with the new trend of containers, where you could place one microservice in one container. Sometime later there was a new trend: serverless. This made it possible to cut up a microservice into even smaller parts (it even has a name: nanoservices). So the bottom line of this is that smaller is better, right? It allowed code to be more scalable, isolated, and easier to deploy. Let's find out whether we should just follow the trend, or does this trend come to a stop.
 
-## What is a Lambda for?
+## The limits of a Lambda function
 
-Before I can say something about the size of a Lambda function, I should answer a different question to make sure we're talking about the same thing: What is a Lambda function for? The answer is pretty simple if you ask me: it depends on the context you're in. Nowadays there is a wide range of teams running their code in the cloud: feature teams, platform teams, data science, CCoE, security, quality assurance, and many more. Each team has different goals and thus will use the cloud differently. I think one thing they all have in common is that they want to achieve a task using the services that AWS offers. For a lot of these tasks, AWS offers specific services (e.g. for a SQL database or a WAF), but I hardly know any use case where just using out-of-the-box AWS services is enough. There is always a need to add customization to it and the way to do this is to write code, and where do you run this code in AWS? Exactly: Lambda functions.
+One thing I think is important to know before diving into this subject is knowing the hard limits of a Lambda function. The limits for a single function are a 15-minute timeout, 10,240 MB memory, and 10GB code size, see [Lambda quotas](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html). It looks like Lambda functions can handle large code bases, as long as the (monolithic) application doesn't have long-running tasks of over 15 minutes or requires large amounts of memory.
 
-Whenever an AWS service is not sufficient enough, the answer is often to write a Lambda function to do it. The almost too obvious example is when you write custom business logic for your user-facing application. But also within for example the security context you could deploy a Lambda function containing code that does a custom company security check: Are all AWS resources tagged according to the company data classification rules? The CCoE team might deploy a Lambda function to make sure all AWS sandbox accounts don't have any unused AWS resources running to reduce the total AWS costs. Even a feature team could use Lambda functions for non-user facing features: to automatically rotate the password of a database.
+This still doesn't answer the question of how big a Lambda function should be, but it at least sets some boundaries for the discussion later on.
 
-As is shown with the above examples, Lambda functions do not serve a single purpose, but that doesn't help me answer my question. To still get to an answer, I'll scope the topic to what is probably what you expected: How big should a Lambda function containing business logic for customer features be? What I mean by this is that the Lambda function is for example (part of) a user-facing API or part of an event-driven flow to process user information.
+## Smaller vs larger functions
 
-## Smaller vs bigger
-
-With the discussion scoped, it's now time to see what the options are and what their benefits are. Looking at the question again, it's hard to make it specific. Saying that a Lambda function should be 1GB in size doesn't make sense. It makes more sense to see the question as a slider with one end being 'as many small Lambda functions as possible' and the other end being 'as few big Lambda functions as possible'. So let's see what the advantages of each extreme are.
+With the necessary context in place, it's now time to see what the options are and what their benefits are. Looking at the question again, it's hard to make it specific. Saying that a Lambda function should always be 1GB in size doesn't make sense. It makes more sense to see the question as a scale with one end being 'as many small Lambda functions as possible' and the other end being 'as few big Lambda functions as possible'. So let's see what the advantages of each extreme are.
 
 ### Many small Lambda functions
 
 Choosing this option means that you try to cut up Lambda functions as much as possible. The advantages of this are:
 
-- Less impact on a wrong deployment, since the rest of the Lambda functions still work.
-- Clear (domain) boundaries between functions, which makes replacing Lambda functions much easier. Since the code size in a function is smaller, there are fewer internal code dependencies, making it easier to 'untangle' the code and make changes. The total code complexity within a Lambda function is less, making this setup more flexible.
-- Each function can be individually tuned and monitored since this could be different for each one. This could save costs and could make pinpointing a problem easier since it can be pinpointed to a specific, small Lambda function.
+- The cognitive load of a single function is small. Since the code size in a function is smaller, it's easier to understand the code and make changes. This makes it for example easier to optimise the code, resulting in faster and thus cheaper functions (since you pay for what you use).
+- The impact of a wrong deployment is smaller since the rest of the Lambda functions still work.
+- It's possible to have clear (sub) domain boundaries between functions: a function often just does a single thing. This gives the flexibility to more easily move or replace them.
+- Each function can be individually configured. One of these things is the memory of the function. This could save costs, since each Lambda function can be 'power tuned' to the right memory size. Another benefit is that each function gets it's own IAM Role. That way it's possible to have a very strict 'least privilege' setup.
+- Each function can be individually monitored. This would make pinpointing a specific problem to a Lambda function easier.
+- You'll be less likely to run into any Lambda limits (memory, time-out) if you cut up a function and move some functionality to AWS services. One example of this is batch processing. If you try to solve this within your Lambda function, you're likely to hit the memory or time-out limit at some point.
+
+![lambda-size-1]({{ site.url }}/assets/2023-09-10-lambda-size/lambda-size-Page-1.png)
+
+_Example order processing application, where the size of the Lambda function reflects the size of the code it contains. It's clear what the responsibility is of each Lambda function and to which domain it belongs. It would be possible to change one of the functions without directly impacting the others._
 
 ### Few big Lambda functions
 
 Choosing this option means that you try to combine Lambda functions as much as possible. The advantages of this are:
 
-- Deployments are faster since you have to build, package, and deploy fewer Lambda functions.
-- The setup is often easier since the dependencies are often between parts within a single Lambda function. For example, you don't need a package for shared logic, but can just directly reference the shared logic from different places within the same Lambda function.
-- Less Lambda functions to monitor since there are fewer in total. This makes the infrastructure landscape easier to monitor.
-- A single Lambda function contains more code of the application, making it easier to test and debug locally. From A to Z is all in the software, so you don't need to 'simulate' AWS infrastructure locally (e.g. local SQS, DynamoDB, etc.).
+- The infrastructure is less complex since there are fewer functions. This makes the infrastructure easier to monitor and maintain.
+- A single Lambda function contains more code of the application, making it easier to test and debug locally. If you want to write a test, there's a bigger chance it just spans a single Lambda function. It's easier and faster to write such a test than a test where you have to cover multiple Lambda functions and simulate or deploy AWS infrastructure.
+- Deployments could be faster since you have to build, package, and deploy fewer Lambda functions.
+- It's easier to share code within a single Lambda function than over multiple Lambda functions. For the latter one, it's often necessary to add some 'library' setup, including having to publish this library to a central package repository (like JFrog Artifactory) and then also consume it. Changing shared code via a library requires a lot of extra steps, while if the code is within a single Lambda it's much simpler and faster.
 
-### The actual choice
+![lambda-size-2]({{ site.url }}/assets/2023-09-10-lambda-size/lambda-size-Page-2.png)
+
+_Example order processing application, where the size of the Lambda function reflects the size of the code it contains. The infrastructure for this setup is much simpler, and thus easier to build than the previous setup. The trade-off is that the code that the single function contains, is much more._
+
+### The actual choice
 
 There are a lot of advantages to each setup and I think it all boils down to the following choice:
 
-- Do you want the complexity (code dependencies, deployments, monitoring, etc.) to be in the infrastructure (many small Lambda functions) or in the software (few big Lambda functions)?
+- Do you want the complexity to be in the infrastructure (many small Lambda functions) or in the software (few big Lambda functions)? This complexity means less flexibility and requires more effort (aka time).
 
-## The sweet middle spot
+## The answer
 
-If you ask me the previous consideration shows what I said earlier: the choice depends on the context. If you ask ten different people, you'll get ten different answers, so let me give my take on it.
+_Disclaimer: what now follows is a personal opinion._
 
-I think that the choice is different based on the maturity of the project that you work on. In the beginning, when there are a lot of unknowns and value should be delivered quickly, the few big Lambda functions setup works best. Since the domain is probably unclear, it's hard to tell what the right boundaries are for each Lambda. Later on, when you start to get a feeling for this, it's easier to split up a single big Lambda function than to move code between many smaller ones. Having to do the latter one is very time-consuming, time that you probably don't have.
+The answer is different depending on the maturity of the project that you work on. In the beginning, when there are a lot of unknowns and value should be delivered quickly, the few big Lambda functions setup works best. It requires less effort and time to set up, causing the 'Lead Time for Changes' to be less. Given the uncertainties early on, changes are likely to happen. Later on, when patterns start to emerge, it's easier to split up a single big Lambda function than to migrate code between many smaller ones. Having to do the latter one is very time-consuming, time that you don't spend on delivering value.
 
-Another advantage is that with a few big Lambda functions it's much easier to start delivering value more quickly. You don't have to bother with creating packages to share logic, since you would have to figure out how to deploy a library package, how to consume it, how to version it, and how to keep it up-to-date in all places. With a few big Lambda's it's easy to make a lot of miles early and postpone a few complexities for later during the project.
+At some point, when the application starts being used and when the domain is starting to become clear, is time to gradually cut up Lambda functions. This should solve some things that have been annoying for some time, like monitoring not being granular enough or some wrongly named functions. Of course, it would have been nice if you started with smaller functions straight away, then you wouldn't have to refactor. From my experience, this is almost impossible, due to the many unknowns. You know you're going to shoot yourself in your foot because you're not going to get it right in one try. At least when working with bigger Lambda functions, the wound is less severe and easier to recover from.
 
-At some point, when the application is being used when the domain is starting to become clear, is the time to gradually cut up Lambda functions. This should solve some things that have been annoying for some time, like monitoring not being granular enough. Of course, it would have been nice if you started with smaller functions straight away, you wouldn't have to refactor which seems more efficient. From my experience, this is almost impossible, due to the many unknowns. You know you're going to shoot yourself in your foot because you're not going to get it right in one try. At least when working with bigger Lambda functions, the wound is less severe and easier to recover from.
+## Some final tips
 
-So you probably think: I'm going to cut up these big Lambda functions, how should I decide how I cut it? These are some rules that help me decide on this:
+So you probably think: I'm going to cut up these big Lambda functions, how should I cut them? These are some rules that help me decide on this:
 
 - If the Lambda function has different input and output types, it should be split up per type. For example, if a Lambda function is triggered event driven by an SQS queue and triggered on a scheduled basis by EventBridge Scheduler, it should be cut up in a Lambda function for each trigger. This way there is less boilerplate code necessary (no logic needed to decide the type of input) and thus reduces the complexity of the code and the chance of bugs (picking the wrong trigger type). The same applies to the output type, for an SQS queue it might be necessary to return a batch response, while for an API Gateway, a rest response must be returned.
-- Another rule is around the functionalities of the function: each functionality should/could be its own Lambda function. For example, a Lambda function calls a database and is called based on events. It receives events with information that should be put in the database and events with requests for information. Within the context of this application, the first type of event is vital and should always be processed as quickly as possible. The second type of event is less important and it's okay if it's slower and fails. The one big flaw here is that the second type of event influences the first, vital type of event. Because both are in a single function, it's hard to separate them. If the times the function fails are monitored, how do we know it's from a vital event and the standby team should receive an alert? Each situation is different, but in this one, it's clear that splitting the function up is a good thing.
-- Don't mix (sub)domains in a single Lambda function. I think you could even go as far as saying that each Lambda function should just result in a single entity. If it's about more than one entity, it's a bad idea. For example, if a Lambda function receives an order it reduces funds of the account of the customer and also reduces the amount of items in stock, it should be split up.
+- Another rule is around the functional responsibilities of the function: each distinct functionality it does, should/could be its own Lambda function. This way it's possible to identify the Lambda functions that are core to your application. For these, you want to be called in the middle of the night if something is wrong, while for others you don't.
+- Very similar to the previous rule, there's also a rule for all technical responsibilities. If a single, big Lambda function has access to a large set of AWS resources (DynamoDB tables, S3 buckets, cross-account access, etc.), the security risk of such a function would be relatively high. If this function would be split up, it's possible to also let each function have less privileges.
+- Don't mix (sub)domains in a single Lambda function. I think you could even go as far as saying that each Lambda function should just result in a single entity. If it's about more than one entity, it's a bad idea. For example: a Lambda function receives an order and then it reduces funds of the account of the customer and also reduces the amount of items in stock. This function does two things and should thus be split up.
 
 ## Conclusion
 
-The above hopefully summarises some of my learnings of Lambda functions so far. I'm curious as to what the opinion of other people is and how I will look at this in a few years. I would like to emphasize that there is no right or wrong as long as it's a conscious choice between different advantages and disadvantages. The most important thing for me is that the design is set up flexibly, and it's always possible to reduce or increase the size of Lambda functions depending on new learnings.
+The above summarises some of my learnings of Lambda functions so far. I'm curious as to what the opinion of other people is and how I will look at this in a few years. I would like to emphasize that there is no right or wrong as long as it's a conscious choice between different advantages and disadvantages. It could, for example, be a good thing to split functions up from the beginning based on security reasons. The most important thing for me is that the design is set up in a flexible way, so it's always possible to adapt the application to the journey of your team.
